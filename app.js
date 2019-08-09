@@ -12,14 +12,7 @@ require("pidcrypt/aes_cbc");
 const aes = new pidCrypt.AES.CBC();
 
 const url = 'mongodb://localhost:27017/test';
-var connect = MongoClient.connect (url);
-//var db=null;
-// MongoClient.connect(url,(err,database) =>{
-//     if (err){
-//         console.log(err)
-//     }
-//     db=database;
-// });
+var connect = MongoClient.connect (url); //return Promise
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -27,14 +20,6 @@ app.set('view engine', 'ejs');
 function randomString(length) {
     return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 }
-
-
-
-// mongoClient.connect((err, client) => {
-//     //console.log("asdasdasdasdasd")
-//     const db = client.db("test");
-//     const collection = db.collection("text");
-// });
 
 app.get('/', routes);
 app.get('/:id', (request, response) => {
