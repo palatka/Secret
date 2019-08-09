@@ -7,21 +7,27 @@ const pidCrypt = require("pidcrypt");
 const urlencodedParser = bodyParser.urlencoded({extended: false});
 require("pidcrypt/aes_cbc");
 const aes = new pidCrypt.AES.CBC();
-
-const url = 'mongodb://localhost:27017/test';
-var connect = MongoClient.connect (url); //return Promise!!!
-
 app.set('view engine', 'ejs');
+
+const mongo = {
+    db:null,
+    collection:null
+};
+
+MongoClient.connect('mongodb://localhost:27017',(err, client) =>{
+    mongo.db = client.db('test');
+    mongo.collection = mongo.db.collection('text');
+});
 
 function randomString(length) {
     return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 }
 
 app.get('/', routes);
-app.get('/:id', (request, response) => {
+app.get('/api/:id', (request, response) => {
     const id = request.params.id;
     const details = { '_id': id};
-    connect.then (db => db.collection('text').findOne(details, (err, item) => {
+    mongo.collection.findOne(details, (err, item) => {
         if (err) {
             response.send({'error':'An error has occurred'});
         } else {
@@ -30,7 +36,7 @@ app.get('/:id', (request, response) => {
                 endecodetext:"",
             });
         }
-    }));
+    });
 });
 
 app.post("/", urlencodedParser, (request, response) => {
@@ -39,27 +45,24 @@ app.post("/", urlencodedParser, (request, response) => {
     }
     const crypted = aes.encryptText(request.body.message, request.body.password, {nBits: 256});
     const id=randomString(6);
-    connect.then (db => db.collection("text").insertOne({_id:id,text:crypted}));
-    response.render("urlss", {
-        urls:"http://localhost:3001/"+id,
+    mongo.collection.insertOne({_id:id,text:crypted});
+    response.render("link", {
+        link:"http://localhost:3001/api/"+id,
     });
 });
 
-app.post("/:id", urlencodedParser, (request, response) => {
+app.post("/api/:id", urlencodedParser, (request, response) => {
     if (!request.body) {
         return response.sendStatus(400);
     }
-    const decrypted = aes.decryptText(request.body.message, request.body.password);
+    const decrypted = aes.decryptText(request.body.demessage, request.body.password);
     response.render("all", {
         decodtext: request.body.demessage,
         endecodetext: decrypted,
     });
 });
 
-app.use((err, request, response) => {
-    response.status(500).send('Something broke!')
+app.listen(3001, () => {
+    console.log(`App running at http://localhost:3001/`)
 });
 
-app.listen(3001, () => {
-    console.log(`App running at http://localhost:3001`)
-});
