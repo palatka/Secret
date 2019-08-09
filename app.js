@@ -11,6 +11,16 @@ const urlencodedParser = bodyParser.urlencoded({extended: false});
 require("pidcrypt/aes_cbc");
 const aes = new pidCrypt.AES.CBC();
 
+const url = 'mongodb://localhost:27017/test';
+var connect = MongoClient.connect (url);
+//var db=null;
+// MongoClient.connect(url,(err,database) =>{
+//     if (err){
+//         console.log(err)
+//     }
+//     db=database;
+// });
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -18,24 +28,19 @@ function randomString(length) {
     return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 }
 
-const connection = ()=>{
-    return mongoClient.connect((err, client)=> {
-        return client;
-    });
-};
-const db = connection.db("test");
-const collection =  db.collection("text");
-// mongoClient.connect((err, client) => {
-//     const db = client.db("test");
-//     const collection =  db.collection("text");
-// });
 
+
+// mongoClient.connect((err, client) => {
+//     //console.log("asdasdasdasdasd")
+//     const db = client.db("test");
+//     const collection = db.collection("text");
+// });
 
 app.get('/', routes);
 app.get('/:id', (request, response) => {
     const id = request.params.id;
     const details = { '_id': id};
-    collection.findOne(details, (err, item) => {
+    connect.then (db => db.collection('text').findOne(details, (err, item) => {
         if (err) {
             response.send({'error':'An error has occurred'});
         } else {
@@ -44,7 +49,7 @@ app.get('/:id', (request, response) => {
                 endecodetext:"",
             });
         }
-    });
+    }));
 });
 app.post("/", urlencodedParser, (request, response) => {
     if(!request.body) {
@@ -52,7 +57,7 @@ app.post("/", urlencodedParser, (request, response) => {
     }
     const crypted = aes.encryptText(request.body.message, request.body.password, {nBits: 256});
     const id=randomString(6);
-    collection.insertOne({_id:id,text:crypted});
+    connect.then (db => db.collection("text").insertOne({_id:id,text:crypted}));
     response.render("urlss", {
         urls:"http://localhost:3001/"+id,
     });
