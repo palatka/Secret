@@ -1,8 +1,5 @@
-const path = require('path');
 const MongoClient = require('mongodb').MongoClient;
-const mongoClient = new MongoClient("mongodb://localhost:27017/", { useNewUrlParser: true });
 const express = require('express');
-const layout = require('express-layout');
 const bodyParser = require('body-parser');
 const routes = require('./routes')
 const app = express();
@@ -14,7 +11,6 @@ const aes = new pidCrypt.AES.CBC();
 const url = 'mongodb://localhost:27017/test';
 var connect = MongoClient.connect (url); //return Promise
 
-app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 function randomString(length) {
@@ -36,6 +32,7 @@ app.get('/:id', (request, response) => {
         }
     }));
 });
+
 app.post("/", urlencodedParser, (request, response) => {
     if(!request.body) {
         return response.sendStatus(400);
