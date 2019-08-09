@@ -9,7 +9,7 @@ require("pidcrypt/aes_cbc");
 const aes = new pidCrypt.AES.CBC();
 
 const url = 'mongodb://localhost:27017/test';
-var connect = MongoClient.connect (url); //return Promise
+var connect = MongoClient.connect (url); //return Promise!!!
 
 app.set('view engine', 'ejs');
 
